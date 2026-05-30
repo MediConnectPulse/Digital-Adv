@@ -1,10 +1,10 @@
 import React from 'react';
-import { Template, TemplateSchema } from '@/lib/types';
+import { Template, TemplateFormData } from '@/lib/types';
 import { TemplateEngine } from '@/lib/template-engine';
 
 interface CardPreviewProps {
   template: Template;
-  data: Record<string, any>;
+  data: TemplateFormData;
   exportPreset?: string;
   showWatermark?: boolean;
   watermarkText?: string;
@@ -18,7 +18,7 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
   watermarkText = 'Made with PromoCard',
 }) => {
   const schema = template.schema;
-  const styleVariables = TemplateEngine.applyStyleVariables(schema, data.primaryColor ? {
+  const styleVariables = TemplateEngine.applyStyleVariables(schema, typeof data.primaryColor === 'string' && data.primaryColor ? {
     '--primary-color': data.primaryColor,
   } : {});
 

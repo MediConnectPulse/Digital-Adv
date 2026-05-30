@@ -1,5 +1,9 @@
 // Database Schema Types for PromoCard
 
+export type TemplateFieldValue = string | number | boolean | null | undefined;
+export type TemplateFormData = Record<string, TemplateFieldValue>;
+export type ExportQuality = 'low' | 'high' | 'premium';
+
 export interface User {
   id: string;
   email: string;
@@ -151,7 +155,7 @@ export interface GeneratedCard {
   id: string;
   userId: string;
   templateId: string;
-  data: Record<string, any>;
+  data: TemplateFormData;
   previewUrl?: string;
   exportUrl?: string;
   isPublic: boolean;
@@ -281,7 +285,7 @@ export interface AuditLog {
   action: string;
   entityType: string;
   entityId: string;
-  changes?: Record<string, any>;
+  changes?: TemplateFormData;
   ipAddress?: string;
   userAgent?: string;
   createdAt: Date;

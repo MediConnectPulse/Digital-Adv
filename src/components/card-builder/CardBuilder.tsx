@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Template, TemplateSchema } from '@/lib/types';
+import React, { useState } from 'react';
+import { Template, TemplateFormData } from '@/lib/types';
 import { TemplateEngine } from '@/lib/template-engine';
 import { FormField } from './FormField';
 import { CardPreview } from './CardPreview';
 
 interface CardBuilderProps {
   template: Template;
-  initialData?: Record<string, any>;
-  onDataChange?: (data: Record<string, any>) => void;
+  initialData?: TemplateFormData;
+  onDataChange?: (data: TemplateFormData) => void;
   showWatermark?: boolean;
   watermarkText?: string;
 }
@@ -21,17 +21,13 @@ export const CardBuilder: React.FC<CardBuilderProps> = ({
   showWatermark = false,
   watermarkText = 'Made with PromoCard',
 }) => {
-  const [data, setData] = useState<Record<string, any>>(initialData);
+  const [data, setData] = useState<TemplateFormData>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [selectedPreset, setSelectedPreset] = useState<string>('');
+  const [selectedPreset, setSelectedPreset] = useState<string>(
+    () => template.schema.exportPresets[0]?.id ?? ''
+  );
 
-  useEffect(() => {
-    if (template.schema.exportPresets.length > 0) {
-      setSelectedPreset(template.schema.exportPresets[0].id);
-    }
-  }, [template]);
-
-  const handleFieldChange = (fieldId: string, value: any) => {
+  const handleFieldChange = (fieldId: string, value: string) => {
     const newData = { ...data, [fieldId]: value };
     setData(newData);
     
@@ -55,14 +51,6 @@ export const CardBuilder: React.FC<CardBuilderProps> = ({
     setSelectedPreset(presetId);
   };
 
-  const validate = (): boolean => {
-    const validation = TemplateEngine.validateTemplateData(template.schema, data);
-    setErrors(validation.errors);
-    return validation.valid;
-  };
-
-  const getData = (): Record<string, any> => data;
-
   const schema = template.schema;
 
   return (
@@ -73,15 +61,18 @@ export const CardBuilder: React.FC<CardBuilderProps> = ({
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Customize Your Card</h2>
           
           <div className="space-y-4">
-            {schema.fields.map((field) => (
+            {schema.fields.map((field) => {
+              const fieldValue = data[field.id];
+              return (
               <FormField
                 key={field.id}
                 field={field}
-                value={data[field.id]}
+                value={typeof fieldValue === 'string' ? fieldValue : ''}
                 onChange={(value) => handleFieldChange(field.id, value)}
                 error={errors[field.id]}
               />
-            ))}
+              );
+            })}
           </div>
         </div>
 

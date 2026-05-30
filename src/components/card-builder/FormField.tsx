@@ -3,8 +3,8 @@ import { TemplateField } from '@/lib/types';
 
 interface FormFieldProps {
   field: TemplateField;
-  value: any;
-  onChange: (value: any) => void;
+  value: string | undefined;
+  onChange: (value: string) => void;
   error?: string;
 }
 

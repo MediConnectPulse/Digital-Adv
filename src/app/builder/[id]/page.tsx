@@ -1,21 +1,20 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { seedTemplates } from '@/lib/seed-data';
 import { CardBuilder } from '@/components/card-builder/CardBuilder';
 import { ExportUtils } from '@/lib/export-utils';
-import { Template } from '@/lib/types';
+import { Template, TemplateFormData } from '@/lib/types';
 
 export default function TemplateBuilderPage() {
-  const router = useRouter();
   const params = useParams();
   const templateId = params.id as string;
-  const [template, setTemplate] = useState<Template | null>(
+  const [template] = useState<Template | null>(
     seedTemplates.find((t) => t.id === templateId) || null
   );
-  const [cardData, setCardData] = useState<Record<string, any>>({});
+  const [cardData, setCardData] = useState<TemplateFormData>({});
   const [isExporting, setIsExporting] = useState(false);
   const [showWatermark, setShowWatermark] = useState(true);
   const previewRef = useRef<HTMLDivElement>(null);

@@ -12,11 +12,11 @@ export default function AdminDashboard() {
   const [templates, setTemplates] = useState<Template[]>(seedTemplates);
   const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>(seedFeatureFlags);
 
-  const handleSettingsUpdate = (field: keyof AppSettings, value: any) => {
+  const handleSettingsUpdate = <K extends keyof AppSettings>(field: K, value: AppSettings[K]) => {
     setAppSettings((prev) => ({ ...prev, [field]: value, updatedAt: new Date() }));
   };
 
-  const handlePlanUpdate = (planId: string, field: keyof Plan, value: any) => {
+  const handlePlanUpdate = <K extends keyof Plan>(planId: string, field: K, value: Plan[K]) => {
     setPlans((prev) =>
       prev.map((plan) =>
         plan.id === planId ? { ...plan, [field]: value, updatedAt: new Date() } : plan
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition ${
                   activeTab === tab.id
                     ? 'border-blue-600 text-blue-600'

@@ -1,19 +1,21 @@
-import { Template, TemplateSchema, TemplateField } from './types';
+import { Template, TemplateSchema, TemplateField, TemplateFormData } from './types';
 
 export class TemplateEngine {
-  static validateField(field: TemplateField, value: any): { valid: boolean; error?: string } {
-    if (field.required && (!value || value === '')) {
+  static validateField(field: TemplateField, value: unknown): { valid: boolean; error?: string } {
+    const stringValue = typeof value === 'string' ? value : '';
+
+    if (field.required && (!value || stringValue === '')) {
       return { valid: false, error: `${field.label} is required` };
     }
 
-    if (field.maxLength && value && value.length > field.maxLength) {
+    if (field.maxLength && stringValue && stringValue.length > field.maxLength) {
       return { valid: false, error: `${field.label} must be ${field.maxLength} characters or less` };
     }
 
     if (field.validation) {
-      if (field.validation.pattern && value) {
+      if (field.validation.pattern && stringValue) {
         const regex = new RegExp(field.validation.pattern);
-        if (!regex.test(value)) {
+        if (!regex.test(stringValue)) {
           return { valid: false, error: `${field.label} format is invalid` };
         }
       }
@@ -22,7 +24,7 @@ export class TemplateEngine {
     return { valid: true };
   }
 
-  static validateTemplateData(schema: TemplateSchema, data: Record<string, any>): {
+  static validateTemplateData(schema: TemplateSchema, data: TemplateFormData): {
     valid: boolean;
     errors: Record<string, string>;
   } {
@@ -63,27 +65,34 @@ export class TemplateEngine {
   }
 
   static applyStyleVariables(schema: TemplateSchema, customStyles?: Record<string, string>): Record<string, string> {
-    const baseStyles = {
-      '--primary-color': schema.style.colors.primary,
-      '--secondary-color': schema.style.colors.secondary,
-      '--accent-color': schema.style.colors.accent,
-      '--background-color': schema.style.colors.background,
-      '--text-color': schema.style.colors.text,
-      '--font-family': schema.style.fontFamily,
-      '--base-font-size': schema.style.baseFontSize,
-      '--spacing-small': schema.style.spacing?.small || '8px',
-      '--spacing-medium': schema.style.spacing?.medium || '16px',
-      '--spacing-large': schema.style.spacing?.large || '24px',
-    };
+    const { colors, fontFamily, baseFontSize, spacing } = schema.style;
+    const baseStyles = TemplateEngine.toStringRecord({
+      '--primary-color': colors.primary,
+      '--secondary-color': colors.secondary,
+      '--accent-color': colors.accent,
+      '--background-color': colors.background,
+      '--text-color': colors.text,
+      '--font-family': fontFamily,
+      '--base-font-size': baseFontSize,
+      '--spacing-small': spacing?.small ?? '8px',
+      '--spacing-medium': spacing?.medium ?? '16px',
+      '--spacing-large': spacing?.large ?? '24px',
+    });
 
     return { ...baseStyles, ...customStyles };
+  }
+
+  private static toStringRecord(styles: object): Record<string, string> {
+    return Object.fromEntries(
+      Object.entries(styles).filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+    );
   }
 
   static getSectionStyle(sectionId: string, schema: TemplateSchema): Record<string, string> {
     const section = schema.layout.sections.find((s) => s.id === sectionId);
     if (!section) return {};
 
-    return section.style;
+    return TemplateEngine.toStringRecord(section.style);
   }
 
   static filterTemplatesByPlan(templates: Template[], userPlanId: string): Template[] {

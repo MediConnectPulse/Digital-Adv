@@ -60,7 +60,7 @@ export class MonetizationService {
 
     const qualityLevels = ['low', 'high', 'premium'];
     const planQualityIndex = qualityLevels.indexOf(plan.exportQuality);
-    const requestedQualityIndex = qualityLevels.indexOf(requestedQuality as any);
+    const requestedQualityIndex = qualityLevels.indexOf(requestedQuality);
 
     if (requestedQualityIndex <= planQualityIndex) {
       return { allowed: true };

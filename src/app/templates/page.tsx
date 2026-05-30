@@ -146,7 +146,7 @@ export default function TemplatesPage() {
       {/* CTA Section */}
       <div className="bg-blue-600 py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Can't find what you're looking for?</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">Can&apos;t find what you&apos;re looking for?</h2>
           <p className="text-xl text-blue-100 mb-8">
             Upgrade to Pro or Business to access all premium templates
           </p>
