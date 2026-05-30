@@ -3,18 +3,19 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { seedTemplates } from '@/lib/seed-data';
+import { UserNav } from '@/components/layout/UserNav';
+import { useApp } from '@/components/providers/AppProvider';
 import { Template } from '@/lib/types';
 import { TemplateEngine } from '@/lib/template-engine';
 
 export default function TemplatesPage() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [userPlan, setUserPlan] = useState('plan-free');
+  const { templates, userPlanId } = useApp();
 
-  const activeTemplates = TemplateEngine.getActiveTemplates(seedTemplates);
+  const activeTemplates = TemplateEngine.getActiveTemplates(templates);
   const sortedTemplates = TemplateEngine.sortTemplatesByOrder(activeTemplates);
-  const availableTemplates = TemplateEngine.filterTemplatesByPlan(sortedTemplates, userPlan);
+  const availableTemplates = TemplateEngine.filterTemplatesByPlan(sortedTemplates, userPlanId);
 
   const categories = [
     { id: 'all', name: 'All Templates' },
@@ -36,30 +37,7 @@ export default function TemplatesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              PromoCard
-            </Link>
-            <div className="flex items-center space-x-4">
-              <Link href="/templates" className="text-blue-600 font-medium">
-                Templates
-              </Link>
-              <Link href="/pricing" className="text-gray-700 hover:text-blue-600 transition">
-                Pricing
-              </Link>
-              <Link
-                href="/builder"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-              >
-                Start Creating
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <UserNav active="templates" />
 
       {/* Header */}
       <div className="bg-white border-b border-gray-200">

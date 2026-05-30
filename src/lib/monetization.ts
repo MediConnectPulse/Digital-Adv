@@ -103,8 +103,20 @@ export class MonetizationService {
   }
 
   static getUserPlan(user: User, plans: Plan[] = []): Plan {
-    // In a real app, this would fetch the user's actual plan from the database
-    // For now, we'll return a default plan based on the user's role
+    const planIdByRole: Record<string, string> = {
+      guest: 'plan-free',
+      free: 'plan-free',
+      paid: 'plan-pro',
+      pro: 'plan-pro',
+      admin: 'plan-business',
+    };
+    const targetPlanId = planIdByRole[user.role] || 'plan-free';
+    const storedPlan = plans.find((plan) => plan.id === targetPlanId && plan.isActive);
+    if (storedPlan) {
+      return storedPlan;
+    }
+
+    // Fallback when persisted plans are unavailable (SSR / first load)
     const defaultPlans: Record<string, Plan> = {
       guest: {
         id: 'plan-free',

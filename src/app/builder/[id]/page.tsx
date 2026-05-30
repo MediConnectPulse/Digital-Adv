@@ -1,47 +1,64 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { seedTemplates } from '@/lib/seed-data';
 import { CardBuilder } from '@/components/card-builder/CardBuilder';
+import { UserNav } from '@/components/layout/UserNav';
+import { useApp } from '@/components/providers/AppProvider';
 import { ExportUtils } from '@/lib/export-utils';
-import { Template, TemplateFormData } from '@/lib/types';
+import { MonetizationService } from '@/lib/monetization';
+import { TemplateFormData } from '@/lib/types';
+import { AuthService } from '@/lib/auth';
 
 export default function TemplateBuilderPage() {
   const params = useParams();
   const templateId = params.id as string;
-  const [template] = useState<Template | null>(
-    seedTemplates.find((t) => t.id === templateId) || null
-  );
+  const { templates, appSettings, user } = useApp();
   const [cardData, setCardData] = useState<TemplateFormData>({});
   const [isExporting, setIsExporting] = useState(false);
-  const [showWatermark, setShowWatermark] = useState(true);
-  const previewRef = useRef<HTMLDivElement>(null);
+
+  const template = useMemo(
+    () => templates.find((t) => t.id === templateId && t.isActive) ?? null,
+    [templates, templateId]
+  );
+
+  const defaultShowWatermark = useMemo(() => {
+    const effectiveUser =
+      user ?? AuthService.createUser('guest@promocard.local', 'Guest', 'guest');
+    return MonetizationService.checkWatermark(effectiveUser, appSettings).showWatermark;
+  }, [user, appSettings]);
+
+  const [showWatermark, setShowWatermark] = useState(defaultShowWatermark);
+  const watermarkText = appSettings.pricing.watermarkText || 'Made with PromoCard';
 
   if (!template) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Template Not Found</h1>
-          <Link
-            href="/builder"
-            className="text-blue-600 hover:text-blue-700"
-          >
-            Back to Templates
-          </Link>
+      <div className="min-h-screen bg-gray-50">
+        <UserNav active="builder" />
+        <div className="flex items-center justify-center flex-1 py-24">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Template Not Found</h1>
+            <p className="text-gray-600 mb-4 text-sm">
+              This template may be inactive or unavailable on your plan.
+            </p>
+            <Link href="/builder" className="text-blue-600 hover:text-blue-700">
+              Back to Templates
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
   const handleExport = async (format: 'png' | 'jpg') => {
-    if (!previewRef.current) return;
+    const preview = document.getElementById('card-preview');
+    if (!preview) return;
 
     setIsExporting(true);
     try {
       const preset = template.schema.exportPresets[0];
-      await ExportUtils.exportAndDownload(previewRef.current, {
+      await ExportUtils.exportAndDownload(preview, {
         format,
         quality: preset.quality,
         width: preset.width,
@@ -57,11 +74,12 @@ export default function TemplateBuilderPage() {
   };
 
   const handleShare = async () => {
-    if (!previewRef.current) return;
+    const preview = document.getElementById('card-preview');
+    if (!preview) return;
 
     try {
       const preset = template.schema.exportPresets[0];
-      const dataUrl = await ExportUtils.exportToDataURL(previewRef.current, {
+      const dataUrl = await ExportUtils.exportToDataURL(preview, {
         format: 'png',
         quality: preset.quality,
         width: preset.width,
@@ -76,29 +94,8 @@ export default function TemplateBuilderPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              PromoCard
-            </Link>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/builder"
-                className="text-gray-700 hover:text-blue-600 transition"
-              >
-                Templates
-              </Link>
-              <Link href="/pricing" className="text-gray-700 hover:text-blue-600 transition">
-                Pricing
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <UserNav active="builder" />
 
-      {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
@@ -127,23 +124,22 @@ export default function TemplateBuilderPage() {
         </div>
       </div>
 
-      {/* Builder */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <CardBuilder
           template={template}
           initialData={cardData}
           onDataChange={setCardData}
           showWatermark={showWatermark}
-          watermarkText="Made with PromoCard"
+          watermarkText={watermarkText}
         />
       </div>
 
-      {/* Export Actions */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button
+                type="button"
                 onClick={() => handleExport('png')}
                 disabled={isExporting}
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -151,6 +147,7 @@ export default function TemplateBuilderPage() {
                 {isExporting ? 'Exporting...' : 'Download PNG'}
               </button>
               <button
+                type="button"
                 onClick={() => handleExport('jpg')}
                 disabled={isExporting}
                 className="bg-gray-100 text-gray-900 px-6 py-2 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -158,6 +155,7 @@ export default function TemplateBuilderPage() {
                 {isExporting ? 'Exporting...' : 'Download JPG'}
               </button>
               <button
+                type="button"
                 onClick={handleShare}
                 disabled={isExporting}
                 className="bg-gray-100 text-gray-900 px-6 py-2 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -174,8 +172,7 @@ export default function TemplateBuilderPage() {
         </div>
       </div>
 
-      {/* Spacer for fixed footer */}
-      <div className="h-20"></div>
+      <div className="h-20" />
     </div>
   );
 }

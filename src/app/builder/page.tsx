@@ -1,46 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { seedTemplates } from '@/lib/seed-data';
+import { UserNav } from '@/components/layout/UserNav';
+import { useApp } from '@/components/providers/AppProvider';
 import { Template } from '@/lib/types';
 import { TemplateEngine } from '@/lib/template-engine';
 
 export default function BuilderPage() {
   const router = useRouter();
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
-  const [userPlan, setUserPlan] = useState('plan-free'); // In real app, this would come from auth
+  const { templates, userPlanId } = useApp();
 
-  const activeTemplates = TemplateEngine.getActiveTemplates(seedTemplates);
+  const activeTemplates = TemplateEngine.getActiveTemplates(templates);
   const sortedTemplates = TemplateEngine.sortTemplatesByOrder(activeTemplates);
-  const availableTemplates = TemplateEngine.filterTemplatesByPlan(sortedTemplates, userPlan);
+  const availableTemplates = TemplateEngine.filterTemplatesByPlan(sortedTemplates, userPlanId);
 
   const handleSelectTemplate = (template: Template) => {
-    setSelectedTemplate(template);
     router.push(`/builder/${template.id}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              PromoCard
-            </Link>
-            <div className="flex items-center space-x-4">
-              <Link href="/templates" className="text-gray-700 hover:text-blue-600 transition">
-                Templates
-              </Link>
-              <Link href="/pricing" className="text-gray-700 hover:text-blue-600 transition">
-                Pricing
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <UserNav active="builder" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">

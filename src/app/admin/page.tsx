@@ -1,16 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
-import { seedAppSettings, seedPlans, seedTemplates, seedFeatureFlags } from '@/lib/seed-data';
-import { AppSettings, Plan, Template, FeatureFlag } from '@/lib/types';
+import { useApp } from '@/components/providers/AppProvider';
+import { AppSettings, Plan } from '@/lib/types';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'settings' | 'plans' | 'templates' | 'flags'>('settings');
-  const [appSettings, setAppSettings] = useState<AppSettings>(seedAppSettings);
-  const [plans, setPlans] = useState<Plan[]>(seedPlans);
-  const [templates, setTemplates] = useState<Template[]>(seedTemplates);
-  const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>(seedFeatureFlags);
+  const {
+    appSettings,
+    setAppSettings,
+    plans,
+    setPlans,
+    templates,
+    setTemplates,
+    featureFlags,
+    setFeatureFlags,
+  } = useApp();
 
   const handleSettingsUpdate = <K extends keyof AppSettings>(field: K, value: AppSettings[K]) => {
     setAppSettings((prev) => ({ ...prev, [field]: value, updatedAt: new Date() }));
@@ -45,26 +50,11 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              PromoCard
-            </Link>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Admin Dashboard</span>
-              <Link href="/" className="text-gray-700 hover:text-blue-600 transition">
-                View Site
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+        <p className="text-gray-600 text-sm mb-8">
+          Changes save automatically and apply to the user-facing app (templates, pricing, watermarks).
+        </p>
 
         {/* Tabs */}
         <div className="border-b border-gray-200 mb-8">
@@ -427,6 +417,5 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
-    </div>
   );
 }

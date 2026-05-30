@@ -2,13 +2,15 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { seedPlans } from '@/lib/seed-data';
+import { UserNav } from '@/components/layout/UserNav';
+import { useApp } from '@/components/providers/AppProvider';
 import { Plan } from '@/lib/types';
 
 export default function PricingPage() {
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'annual'>('monthly');
+  const { plans } = useApp();
 
-  const activePlans = seedPlans.filter((plan) => plan.isActive);
+  const activePlans = plans.filter((plan) => plan.isActive);
 
   const getAnnualPrice = (monthlyPrice: number) => {
     const annualPrice = monthlyPrice * 12;
@@ -32,30 +34,7 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              PromoCard
-            </Link>
-            <div className="flex items-center space-x-4">
-              <Link href="/templates" className="text-gray-700 hover:text-blue-600 transition">
-                Templates
-              </Link>
-              <Link href="/pricing" className="text-blue-600 font-medium">
-                Pricing
-              </Link>
-              <Link
-                href="/builder"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-              >
-                Start Creating
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <UserNav active="pricing" />
 
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
